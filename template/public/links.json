@@ -1,0 +1,9 @@
+[
+  { "title": "MUI components", "url": "https://mui.com/material-ui/all-components/" },
+  { "title": "React Router", "url": "https://reactrouter.com/" },
+  {
+    "title": "TanStack Query",
+    "url": "https://tanstack.com/query/latest/docs/framework/react/overview"
+  },
+  { "title": "Vitest", "url": "https://vitest.dev/guide/" }
+]
