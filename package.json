@@ -10,6 +10,12 @@
     "mui",
     "template"
   ],
+  "homepage": "https://github.com/prettyrocket/create-prettyrocket-app#readme",
+  "bugs": "https://github.com/prettyrocket/create-prettyrocket-app/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prettyrocket/create-prettyrocket-app.git"
+  },
   "author": "Pretty Rocket",
   "license": "MIT",
   "type": "module",

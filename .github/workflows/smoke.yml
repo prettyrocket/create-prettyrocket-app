@@ -68,3 +68,17 @@ jobs:
           npm run format:check
           npm test
           npm run build
+
+      - name: Scaffold into an existing empty repo
+        run: |
+          repo="$RUNNER_TEMP/cloned-app"
+          git init -b trunk "$repo"
+          git -C "$repo" remote add origin https://example.com/cloned-app.git
+          # --github would add a second origin, so it must be refused up front.
+          if node index.js "$repo" --yes --github; then exit 1; fi
+          test "$(ls -A "$repo")" = ".git"
+          node index.js "$repo" --yes --no-install
+          test "$(git -C "$repo" log --oneline | wc -l)" -eq 1
+          test "$(git -C "$repo" branch --show-current)" = trunk
+          test "$(git -C "$repo" remote get-url origin)" = https://example.com/cloned-app.git
+          test -f "$repo/.gitignore"

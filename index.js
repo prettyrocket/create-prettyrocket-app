@@ -205,10 +205,16 @@ function titleFromName(name) {
     .join(' ');
 }
 
+/**
+ * Fail unless dir is missing or empty. A lone .git counts as empty (e.g. a
+ * freshly cloned repo); returns whether one is there.
+ */
 function checkTarget(dir) {
-  if (!fs.existsSync(dir)) return;
+  if (!fs.existsSync(dir)) return false;
   if (!fs.statSync(dir).isDirectory()) fail(`${dir} already exists and isn't a folder.`);
-  if (fs.readdirSync(dir).length > 0) fail(`${dir} already exists and isn't empty.`);
+  const entries = fs.readdirSync(dir).filter((entry) => entry !== '.git');
+  if (entries.length > 0) fail(`${dir} already exists and isn't empty.`);
+  return fs.existsSync(path.join(dir, '.git'));
 }
 
 function editFile(file, transform) {
@@ -238,7 +244,12 @@ if (nameError) fail(nameError);
 
 const targetDir = path.resolve(dirArg);
 const name = path.basename(targetDir);
-checkTarget(targetDir);
+// The user already set this repo up (e.g. cloned it), so commit into it but
+// leave its remote alone: the GitHub step would try to create one.
+const existingRepo = checkTarget(targetDir);
+if (existingRepo && opts.github) {
+  fail(`--github creates a new repo, but ${dirArg} is already a git repo; drop --github.`);
+}
 
 const defaultTitle = titleFromName(name);
 let title = opts.title;
@@ -260,8 +271,9 @@ if (title !== undefined) {
 title = title.trim();
 
 // GitHub: explicit flag wins; --yes means "no"; otherwise ask (if gh can work).
-let github = opts.github;
+let github = existingRepo ? false : opts.github;
 const ghReady =
+  !existingRepo &&
   opts.git &&
   opts.install &&
   github !== false &&
@@ -353,9 +365,9 @@ if (opts.git) {
     problems.push('git not found');
   } else {
     const s = spinner();
-    s.start('Initializing git repo');
+    s.start(existingRepo ? 'Committing to the existing git repo' : 'Initializing git repo');
     const steps = [
-      ['init', '-b', 'main'],
+      ...(existingRepo ? [] : [['init', '-b', 'main']]),
       ['add', '-A'],
       ['commit', '-m', 'Initial scaffold from create-prettyrocket-app'],
     ];
@@ -373,7 +385,7 @@ if (opts.git) {
       problems.push('git setup incomplete');
     } else {
       committed = true;
-      s.stop('Initialized git repo with first commit');
+      s.stop(existingRepo ? 'Made the first commit' : 'Initialized git repo with first commit');
     }
   }
 }

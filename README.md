@@ -36,7 +36,8 @@ an app title and whether to create a GitHub repo, then:
 2. Runs `npm install`, taking only package versions published at least 3 days ago (the same
    cooldown Dependabot uses), so a just-published bad release can't land in a new app. If the
    template needs a newer version than that, it installs anyway and warns.
-3. Runs `git init` and makes an initial commit.
+3. Runs `git init` and makes an initial commit. If the folder is an empty repo you already
+   cloned, it commits into that instead and skips the GitHub step.
 4. If you say yes (and the GitHub CLI `gh` is logged in): creates a **public** GitHub repo
    (Pages on a free plan needs one), enables GitHub Pages and Dependabot security updates, and
    pushes. The first deploy starts right away; the site appears at
