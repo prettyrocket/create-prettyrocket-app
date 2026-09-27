@@ -1,0 +1,62 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: saturday
+    # Wait a few days before proposing a new release (supply-chain buffer).
+    # Security updates ignore this.
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 10
+    groups:
+      # All security fixes in one PR instead of one per advisory.
+      security:
+        applies-to: security-updates
+        patterns: ['*']
+
+      # Minor/patch updates, grouped by packages that move together. A package
+      # lands in the first group it matches, so order matters. Majors are left
+      # ungrouped so each one gets its own PR to review.
+      react:
+        patterns: ['react', 'react-dom', '@types/react', '@types/react-dom']
+        update-types: [minor, patch]
+      mui:
+        patterns: ['@mui/*', '@emotion/*', '@fontsource/*']
+        update-types: [minor, patch]
+      router-and-query:
+        patterns: ['react-router', '@tanstack/*']
+        update-types: [minor, patch]
+      build-and-test:
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'jsdom'
+          - 'typescript'
+          - '@types/node'
+        update-types: [minor, patch]
+      lint-and-format:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'globals'
+          - 'prettier'
+          - '@trivago/*'
+        update-types: [minor, patch]
+      other:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
