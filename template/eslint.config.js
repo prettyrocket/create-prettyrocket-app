@@ -21,6 +21,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Test helpers export non-components; Fast Refresh does not apply to tests.
+    files: ['src/test/**', '**/*.test.{ts,tsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
   // Formatting is Prettier's job; turn off any rules that would fight it.
   prettier,
 ]);
