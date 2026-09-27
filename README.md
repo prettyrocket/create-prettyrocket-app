@@ -41,7 +41,8 @@ an app title and whether to create a GitHub repo, then:
 4. If you say yes (and the GitHub CLI `gh` is logged in): creates a **public** GitHub repo
    (Pages on a free plan needs one), enables GitHub Pages and Dependabot security updates, and
    pushes. The first deploy starts right away; the site appears at
-   `https://<user>.github.io/my-app/`.
+   `https://<user>.github.io/my-app/`. Then it adds two rulesets to `main`: nobody can delete
+   or force-push it, and changes from anyone but you need a PR that passes CI.
 
 Then `cd my-app && npm run dev`, and see `my-app/README.md` for how the app is put together.
 

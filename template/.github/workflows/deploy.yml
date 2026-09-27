@@ -16,6 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The "Require CI" ruleset requires this job by name; rename it there too.
   build:
     runs-on: ubuntu-latest
     steps:

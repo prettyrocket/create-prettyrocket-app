@@ -103,6 +103,13 @@ localStorage is cleared and mocks are restored after each test.
 Pushing to `main` runs `.github/workflows/deploy.yml`: lint, format check,
 tests, build, then deploy to GitHub Pages at `https://<user>.github.io/<repo>/`.
 Pull requests run the same checks without deploying.
+
+If the repo was created by create-prettyrocket-app, `main` has two rulesets
+(**Settings → Rules → Rulesets**): nobody can delete or force-push it, and
+changes need a PR whose `build` job passed. You, as the owner, can bypass that
+second one and push to `main` directly; everyone else, Dependabot included,
+waits for green CI. (If you skipped the CLI's GitHub step, the repo has none;
+add them under Settings → Rules.)
 If Pages isn't enabled yet: **Settings → Pages → Source: GitHub Actions**.
 
 How the pieces fit:

@@ -15,6 +15,49 @@ const RESERVED_NAMES = new Set(['node_modules', 'favicon.ico']);
 // Dependencies must be at least this old, matching Dependabot's cooldown.
 const COOLDOWN_DAYS = 3;
 
+// Rulesets for the new repo's main branch. The owner (admin role, id 5) can
+// push directly; everyone else's changes need a PR whose CI passed. Nobody,
+// the owner included, can delete or force-push main.
+const RULESETS = [
+  {
+    name: 'Protect main',
+    target: 'branch',
+    enforcement: 'active',
+    conditions: { ref_name: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
+    rules: [{ type: 'deletion' }, { type: 'non_fast_forward' }],
+  },
+  {
+    name: 'Require CI',
+    target: 'branch',
+    enforcement: 'active',
+    bypass_actors: [{ actor_id: 5, actor_type: 'RepositoryRole', bypass_mode: 'always' }],
+    conditions: { ref_name: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
+    rules: [
+      {
+        type: 'pull_request',
+        parameters: {
+          // Owners can't approve their own PRs, so requiring reviews would block them.
+          required_approving_review_count: 0,
+          dismiss_stale_reviews_on_push: false,
+          require_code_owner_review: false,
+          require_last_push_approval: false,
+          required_review_thread_resolution: false,
+        },
+      },
+      {
+        type: 'required_status_checks',
+        parameters: {
+          strict_required_status_checks_policy: false,
+          do_not_enforce_on_create: true,
+          // The `build` job in template/.github/workflows/deploy.yml. Pinned to
+          // GitHub Actions' app id so no other app can report it as passing.
+          required_status_checks: [{ context: 'build', integration_id: 15368 }],
+        },
+      },
+    ],
+  },
+];
+
 const HELP = `Usage: npm create prettyrocket-app@latest [dir] -- [options]
 
 Options:
@@ -104,14 +147,15 @@ process.on('exit', () => {
  * Run a command, capturing output. Async (not spawnSync) so the event loop keeps
  * running and spinners animate while it works. npm is a .cmd shim on Windows,
  * which needs a shell; that path takes one command string (only fixed,
- * space-free args).
+ * space-free args). `input`, if given, is written to the command's stdin.
  */
-function run(cmd, args, cwd) {
+function run(cmd, args, cwd, input) {
   const child =
     cmd === 'npm' && process.platform === 'win32'
       ? spawn([cmd, ...args].join(' '), { cwd, shell: true })
       : spawn(cmd, args, { cwd, detached: process.platform !== 'win32' });
   activeChild = child;
+  if (input !== undefined) child.stdin.end(input);
   let stdout = '';
   let output = '';
   child.stdout.on('data', (chunk) => {
@@ -419,8 +463,8 @@ if (github && !(committed && installed)) {
       )
     ).stdout;
     const warnings = [];
-    const api = async (label, args) => {
-      const result = await run('gh', ['api', ...args], targetDir);
+    const api = async (label, args, input) => {
+      const result = await run('gh', ['api', ...args], targetDir, input);
       if (!result.ok) warnings.push(`${label}: ${result.output}`);
       return result;
     };
@@ -445,6 +489,16 @@ if (github && !(committed && installed)) {
     s.message('Pushing to GitHub');
     const pushed = await run('git', ['push', '-u', 'origin', 'main'], targetDir);
     if (!pushed.ok) warnings.push(`git push: ${pushed.output}`);
+
+    // After the push: the first push creates main, which the rulesets target.
+    s.message('Protecting the main branch');
+    for (const ruleset of RULESETS) {
+      await api(
+        `Add ruleset "${ruleset.name}"`,
+        ['-X', 'POST', `repos/${repo}/rulesets`, '--input', '-'],
+        JSON.stringify(ruleset),
+      );
+    }
 
     if (warnings.length) {
       s.error(`Created https://github.com/${repo}, but some steps failed`);
