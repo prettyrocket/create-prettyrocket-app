@@ -1,0 +1,19 @@
+{
+  "name": "create-prettyrocket-app",
+  "version": "0.1.0",
+  "description": "Scaffold a Vite + React + TypeScript + MUI web app, ready for GitHub Pages.",
+  "keywords": ["create", "vite", "react", "typescript", "mui", "template"],
+  "author": "Pretty Rocket",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-prettyrocket-app": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "template"
+  ],
+  "engines": {
+    "node": ">=22.4"
+  }
+}
