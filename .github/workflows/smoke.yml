@@ -1,0 +1,70 @@
+name: Smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # Weekly, because new apps resolve the newest versions in the template's
+  # ranges: this catches an upstream release breaking fresh scaffolds.
+  schedule:
+    - cron: '0 12 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Nothing here pushes; keep the token out of .git/config while deps install.
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            template/package-lock.json
+
+      - name: Check template (locked versions)
+        working-directory: template
+        run: |
+          npm ci
+          npm run lint
+          npm run format:check
+          npm test
+          npm run build
+
+      - name: Scaffold a fresh app
+        run: |
+          npm ci
+          npm run format:check
+          git config --global user.name "smoke-test"
+          git config --global user.email "smoke-test@users.noreply.github.com"
+          node index.js "$RUNNER_TEMP/smoke-app" --yes --no-github --title "Smoke App" | tee scaffold.log
+          # The CLI falls back to installing without its 3-day cooldown when the
+          # template requires newer versions. Fine for users, but don't publish then.
+          if grep -q "Installed without the 3-day cooldown" scaffold.log; then
+            echo "::warning::The template requires versions published in the last 3 days; wait before publishing."
+          fi
+
+      - name: Check scaffolded app (fresh versions)
+        working-directory: ${{ runner.temp }}/smoke-app
+        run: |
+          test "$(git log --oneline | wc -l)" -eq 1
+          test -f .gitignore
+          grep -q '^VITE_APP_TITLE="Smoke App"$' .env
+          npm run lint
+          npm run format:check
+          npm test
+          npm run build

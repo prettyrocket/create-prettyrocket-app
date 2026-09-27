@@ -1,0 +1,73 @@
+# Keeps the CLI and the template current. template/.github/dependabot.yml is
+# the copy each generated app gets; keep the template groups below in sync.
+version: 2
+updates:
+  # The template's dependencies, grouped the same way generated apps are.
+  - package-ecosystem: npm
+    directory: /template
+    schedule:
+      interval: weekly
+      day: saturday
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 10
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ['*']
+      react:
+        patterns: ['react', 'react-dom', '@types/react', '@types/react-dom']
+        update-types: [minor, patch]
+      mui:
+        patterns: ['@mui/*', '@emotion/*', '@fontsource/*']
+        update-types: [minor, patch]
+      router-and-query:
+        patterns: ['react-router', '@tanstack/*']
+        update-types: [minor, patch]
+      build-and-test:
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'jsdom'
+          - 'typescript'
+          - '@types/node'
+        update-types: [minor, patch]
+      lint-and-format:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'globals'
+          - 'prettier'
+          - '@trivago/*'
+        update-types: [minor, patch]
+      other:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  # The CLI's own dependencies (@clack/prompts).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 3
+    groups:
+      cli:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  # Actions used by this repo's workflows and by the template's deploy workflow.
+  # Only "/" means "look in .github/workflows"; any other directory is scanned
+  # for workflow files directly, so the template's must be named in full.
+  - package-ecosystem: github-actions
+    directories: ['/', '/template/.github/workflows']
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']

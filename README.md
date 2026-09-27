@@ -120,6 +120,15 @@ There are two Dependabot configs: `.github/dependabot.yml` (this repo) and
 **Apps you already created don't get template updates.** Each app is its own copy, so port
 changes to it by hand if you want them there.
 
+### CI
+
+`.github/workflows/smoke.yml` runs on Ubuntu and Windows on every push and PR, and weekly:
+
+1. Checks `template/` with its locked versions (lint, format, tests, build).
+2. Generates a fresh app with the CLI, the same way you would, and checks that too. The fresh
+   app resolves the newest versions, so the weekly run tells you when an upstream release breaks
+   new apps even if nothing here changed.
+
 ### Publishing
 
 First time only: `npm login`.
