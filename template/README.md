@@ -3,7 +3,7 @@
 Scaffolded with [create-prettyrocket-app](https://www.npmjs.com/package/create-prettyrocket-app):
 Vite + React + TypeScript + MUI, deployed to GitHub Pages.
 
-Requires Node 22 or newer.
+Requires Node 24 or newer.
 
 ## Scripts
 

@@ -55,7 +55,7 @@ node path/to/create-prettyrocket-app/index.js my-app
 Or run `npm link` once inside this repo; after that, `create-prettyrocket-app my-app` works from
 any folder and always uses your local copy.
 
-Requirements: Node 22.4 or newer, git, and (for the GitHub step) the [GitHub CLI](https://cli.github.com/)
+Requirements: Node 24 or newer, git, and (for the GitHub step) the [GitHub CLI](https://cli.github.com/)
 logged in with `gh auth login`.
 
 ### Options
